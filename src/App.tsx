@@ -77,7 +77,7 @@ export default function UniHubContentBank() {
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -88,13 +88,12 @@ export default function UniHubContentBank() {
         }
       );
 
-      // --- THIS IS THE UPDATED FIX ---
+      // Robust error handling to catch API rejections directly
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const googleError = errorData?.error?.message || response.statusText || "Unknown API Error";
         throw new Error(`Google API Error: ${googleError}`);
       }
-      // -------------------------------
 
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
@@ -328,4 +327,4 @@ export default function UniHubContentBank() {
       </div>
     </div>
   );
-        }
+    }
