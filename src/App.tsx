@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Copy, Check, Clock, Hash, Sparkles, CheckCircle2, Flame, Trophy, Key, RefreshCw, AlertCircle } from "lucide-react";
-
+import { Copy, Check, Clock, Hash, Sparkles, CheckCircle2, Flame, Trophy, Key, RefreshCw, AlertCircle, Zap } from "lucide-react";
 type Post = {
   id: number;
   text: string;
