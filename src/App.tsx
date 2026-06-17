@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Copy, Check, Clock, Hash, Sparkles, CheckCircle2, Flame, Trophy, Key, RefreshCw, AlertCircle, Zap } from "lucide-react";
+import { Copy, Check, Sparkles, Flame, Star, Bell, Plus, MoreVertical } from "lucide-react";
 
 type Post = {
   id: number;
@@ -42,15 +42,11 @@ export default function UniHubContentBank() {
     if (savedXp) setTotalXp(parseInt(savedXp, 10) || 0);
   }, []);
 
-  // Persist key to local state storage
   const saveApiKey = (key: string) => {
     localStorage.setItem("unihub_gemini_key", key);
     setApiKey(key);
-    setShowKeyInput(false);
-    setError(null);
   };
 
-  // Generate new content via client-side fetch directly to Gemini API
   const generateDailyMatrix = async () => {
     if (!apiKey) {
       setError("Please add your Gemini API Key first!");
@@ -64,7 +60,6 @@ export default function UniHubContentBank() {
     const systemPrompt = `
       You are an expert growth hacker and startup copywriter building in public for "UniHub" (domain: try-unihub.click). 
       UniHub is a platform for events and communities. It handles everything: RSVP management, ticketing, crowd control, and coordination.
-      Target Audiences: University student organizers, local event promoters, developers setting up hackathons, gaming hosts coordinating D&D/board game nights, communities tracking meetups, and individuals planning weddings or private ticketed parties.
       
       Generate exactly 4 funny, punchy, self-aware, highly engaging posts for X (Twitter) tailored to specific daily time slots. 
       - Must reference 'try-unihub.click' naturally.
@@ -88,18 +83,15 @@ export default function UniHubContentBank() {
         }
       );
 
-      // Robust error handling to catch API rejections directly
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const googleError = errorData?.error?.message || response.statusText || "Unknown API Error";
-        throw new Error(`Google API Error: ${googleError}`);
+        throw new Error(`Google API Error: ${errorData?.error?.message || response.statusText}`);
       }
 
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
-      
-      // Clean up markdown block wraps if present
-      const cleanJson = rawText.replace(/```json|```/g, "").trim();
+      const cleanJson = rawText.replace(/```json|
+```/g, "").trim();
       const parsed: Array<{ timeSlot: any; category: string; text: string }> = JSON.parse(cleanJson);
 
       const formattedPosts: Post[] = parsed.map((item, index) => ({
@@ -115,7 +107,6 @@ export default function UniHubContentBank() {
       localStorage.setItem("unihub_cached_posts", JSON.stringify(formattedPosts));
       localStorage.setItem("unihub_published_ids", JSON.stringify([]));
       
-      // Bump streak count on successful generation cycle
       const currentStreak = streak === 0 ? 1 : streak;
       setStreak(currentStreak);
       localStorage.setItem("unihub_streak_count", currentStreak.toString());
@@ -152,7 +143,6 @@ export default function UniHubContentBank() {
     setTotalXp(nextXp);
     localStorage.setItem("unihub_total_xp", nextXp.toString());
 
-    // Trigger streak milestone step adjustments if entire matrix goes live
     if (updatedPublished.length === posts.length && posts.length > 0) {
       const nextStreak = streak + 1;
       setStreak(nextStreak);
@@ -160,162 +150,223 @@ export default function UniHubContentBank() {
     }
   };
 
+  // Utility to match the exact aesthetic of each sticky note from the mockup
+  const getCardStyles = (timeSlot: string) => {
+    switch (timeSlot) {
+      case "Morning":
+        return {
+          bg: "bg-[#FDECA6]",
+          rotation: "rotate-1",
+          tape: "bg-white/60 w-20 h-6 -top-3 rotate-2",
+          doodle: "you got this\n=)",
+        };
+      case "Mid-day":
+        return {
+          bg: "bg-[#D8C4FE]",
+          rotation: "-rotate-1",
+          tape: "bg-[#1E1E1E] w-16 h-7 -top-3 -rotate-2",
+          doodle: "x x\n \\_/",
+        };
+      case "Evening":
+        return {
+          bg: "bg-[#BFFCC6]",
+          rotation: "rotate-0",
+          tape: "bg-[#80E487] w-24 h-6 -top-3 rotate-1",
+          doodle: "chaos\nbut make it\nprofessional  *",
+        };
+      case "Late Night":
+      default:
+        return {
+          bg: "bg-[#FDFDFD]",
+          rotation: "rotate-1",
+          tape: "bg-[#1E1E1E] w-16 h-6 -top-3 rotate-1",
+          doodle: "go to\nsleep  z Z\n      z",
+        };
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#111827] text-slate-100 p-4 md:p-8 font-sans antialiased selection:bg-indigo-500 selection:text-white">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <>
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap');
+        .handwriting { font-family: 'Caveat', cursive; }
+        .dot-pattern {
+          background-image: radial-gradient(#d1d5db 2px, transparent 2px);
+          background-size: 24px 24px;
+        }
+      `}} />
+
+      <div className="min-h-screen bg-[#F5F6F8] text-gray-900 font-sans relative overflow-hidden flex justify-center py-10 px-4 md:px-8 selection:bg-black selection:text-white">
         
-        {/* Playful Gamified SaaS Header */}
-        <header className="bg-[#1f2937] border-b-4 border-slate-700 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4 text-center md:text-left">
-            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center border-b-4 border-indigo-800 shadow-md transform -rotate-3 hover:rotate-0 transition-transform">
-              <Zap className="text-amber-300 fill-amber-300" size={30} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-white">UniHub Marketing Desk</h1>
-              <p className="text-sm font-semibold text-indigo-400">Automated Social Content Matrix</p>
-            </div>
-          </div>
+        
+        <div className="absolute top-0 right-0 w-32 h-full dot-pattern opacity-50 z-0 pointer-events-none"></div>
 
-          {/* Duolingo Style Progress Badges */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 bg-amber-500/10 border-2 border-amber-500/30 px-3 py-1.5 rounded-xl font-bold text-amber-400 text-sm shadow-sm">
-              <Flame size={18} className="fill-amber-500" />
-              <span>{streak} DAY STREAK</span>
+        <div className="max-w-4xl w-full relative z-10 space-y-12">
+          
+          
+          <header className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <span className="text-2xl font-black tracking-tighter">UNiHUB</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-emerald-500/10 border-2 border-emerald-500/30 px-3 py-1.5 rounded-xl font-bold text-emerald-400 text-sm shadow-sm">
-              <Trophy size={18} className="fill-emerald-500" />
-              <span>{totalXp} XP</span>
+            <div className="flex items-center gap-4">
+              <button className="text-gray-600 hover:text-black transition-colors">
+                <Bell size="{22}" strokeWidth="{2.5}"/>
+              </button>
+              <button 
+                onClick={() => setShowKeyInput(!showKeyInput)}
+                className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-md"
+              >
+                <Plus size="{22}" strokeWidth="{3}"/>
+              </button>
             </div>
-            <button 
-              onClick={() => setShowKeyInput(!showKeyInput)}
-              className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl border-2 border-slate-600 text-slate-300 transition-colors"
-              title="Configure API Key"
-            >
-              <Key size={18} />
-            </button>
-          </div>
-        </header>
+          </header>
 
-        {/* API Settings Dropdown Panel */}
-        {showKeyInput && (
-          <div className="bg-[#1f2937] border-2 border-indigo-500/40 rounded-2xl p-5 shadow-inner space-y-3">
-            <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
-              <Key size={16} />
-              <span>Gemini Developer Key Configuration</span>
-            </div>
-            <div className="flex gap-2">
+          
+          {showKeyInput && (
+            <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 animate-in fade-in slide-in-from-top-4">
+              <h3 className="font-bold text-sm mb-2">Configuration</h3>
               <input
                 type="password"
-                placeholder="Paste your API key here (AI Studio)"
+                placeholder="Paste Gemini API Key here"
                 defaultValue={apiKey}
                 onChange={(e) => saveApiKey(e.target.value)}
-                className="flex-1 bg-slate-900 border-2 border-slate-700 rounded-xl px-4 py-2 text-sm font-mono text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
               />
+              {error && <p className="text-red-500 text-xs mt-2 font-medium">{error}</p>}
             </div>
-            <p className="text-xs text-slate-400">Keys are kept strictly local to your device container sandbox.</p>
-          </div>
-        )}
+          )}
 
-        {/* Error Handling Alert Banner */}
-        {error && (
-          <div className="bg-rose-500/10 border-2 border-rose-500/30 rounded-xl p-4 flex items-center gap-3 text-rose-400 text-sm font-semibold">
-            <AlertCircle size={20} className="shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-medium tracking-tight flex items-baseline gap-3">
+                Good morning, <span className="handwriting text-5xl md:text-6xl -mb-2">mimi</span> <span className="text-4xl">👋</span>
+              </h1>
+              <p className="text-gray-500 text-lg mt-3">Your automated social content matrix is ready.</p>
+            </div>
 
-        {/* Master Generation Call to Action Control */}
-        <div className="text-center">
-          <button
-            onClick={generateDailyMatrix}
-            disabled={isLoading}
-            className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 active:translate-y-1 text-white px-8 py-4 rounded-2xl font-black tracking-wide shadow-[0_4px_0_0_#4338ca] hover:shadow-[0_2px_0_0_#4338ca] transition-all flex items-center justify-center gap-3 border-2 border-indigo-400 mx-auto disabled:opacity-50 text-base"
-          >
-            {isLoading ? (
-              <>
-                <RefreshCw size={20} className="animate-spin" />
-                <span>ASSEMBLING FRESH TACTICS...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles size={20} className="fill-indigo-200" />
-                <span>GENERATE TODAY'S EXPANDED MATRIX</span>
-              </>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm">
+                <Flame size="{18}" className="text-orange-500 fill-orange-500"/>
+                <span>{streak} DAY STREAK</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm text-green-600">
+                <Star size="{18}" className="fill-green-600"/>
+                <span>{totalXp} XP</span>
+              </div>
+            </div>
+          </div>
+
+          
+          <div className="flex flex-col md:flex-row gap-6 items-stretch">
+            <button
+              onClick={generateDailyMatrix}
+              disabled={isLoading}
+              className="bg-black hover:bg-gray-900 text-white rounded-3xl p-6 flex items-center justify-between w-full md:w-[320px] shadow-xl shadow-black/10 transition-transform active:scale-95 disabled:opacity-80"
+            >
+              <div className="text-left">
+                <span className="block text-lg font-medium leading-tight">Generate Today's<br/>Expanded Matrix</span>
+              </div>
+              <Sparkles size="{28}" className="{isLoading" ? "animate-spin" : ""}/>
+            </button>
+
+            <div className="flex-1 bg-white/60 backdrop-blur-md border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col justify-center">
+              <div className="flex justify-between items-center mb-3 text-sm font-medium text-gray-500">
+                <span>Today's Progress</span>
+                <span>{publishedIds.length} / {posts.length || 4}</span>
+              </div>
+              <div className="flex gap-2">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className={`h-1.5 rounded-full flex-1 ${i < publishedIds.length * 2 ? 'bg-black' : 'bg-gray-200'}`}></div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 pt-4">
+            {posts.length === 0 && !isLoading && (
+               <div className="col-span-2 text-center py-20 text-gray-400 handwriting text-3xl">
+                 Click the black button to brew some content...
+               </div>
             )}
-          </button>
-        </div>
 
-        {/* Matrix Card Dynamic Presentation Interface */}
-        {posts.length === 0 ? (
-          <div className="bg-[#1f2937] border-4 border-dashed border-slate-700 rounded-3xl p-12 text-center space-y-4">
-            <p className="text-slate-400 font-bold text-lg">No content loaded inside today's queue matrix.</p>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">Tap the generation engine above to synthesize unique content vectors targeted to multi-tier organizers using Gemini.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {posts.map((post) => {
+              const styles = getCardStyles(post.timeSlot);
               const charCount = post.text.length;
-              const isOverLimit = charCount > 280;
               const isPublished = publishedIds.includes(post.id);
 
               return (
                 <div
                   key={post.id}
-                  className={`bg-[#1f2937] border-2 border-b-8 rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 ${
-                    isPublished
-                      ? "border-emerald-600/30 bg-[#1f2937]/40 opacity-50 shadow-none scale-[0.99]"
-                      : "border-slate-700 shadow-lg hover:-translate-y-0.5"
-                  }`}
+                  className={`relative ${styles.bg} ${styles.rotation} p-8 pb-6 rounded-sm shadow-xl shadow-black/5 flex flex-col min-h-[380px] transition-all hover:scale-[1.02] ${isPublished ? 'opacity-60' : ''}`}
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-2">
-                        <span className="flex items-center gap-1 text-xs font-black uppercase text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-lg">
-                          <Clock size={12} />
-                          {post.timeSlot}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs font-bold text-slate-400 bg-slate-800 px-2 py-1 rounded-lg">
-                          <Hash size={12} />
-                          {post.category}
-                        </span>
-                      </div>
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                        +{post.xpValue} XP
-                      </span>
-                    </div>
+                  
+                  <div className={`absolute left-1/2 -translate-x-1/2 ${styles.tape} shadow-sm backdrop-blur-sm z-10`}></div>
 
-                    <p className={`text-[15px] font-medium leading-relaxed ${isPublished ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
-                      {post.text}
-                    </p>
+                  
+                  <div className="flex justify-between items-start mb-6 mt-2">
+                    <div className="space-y-3">
+                      <span className="bg-black text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
+                        {post.timeSlot}
+                      </span>
+                      <h3 className="text-[15px] font-medium text-gray-900">
+                        # {post.category}
+                      </h3>
+                    </div>
+                    <span className="bg-green-100/80 text-green-800 text-xs font-bold px-3 py-1 rounded-full border border-green-200/50">
+                      +{post.xpValue} XP
+                    </span>
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between pt-3 border-t border-slate-800">
-                    <span className={`text-xs font-mono font-bold ${isOverLimit ? "text-rose-400" : "text-slate-500"}`}>
+                  
+                  <p className={`text-[17px] leading-relaxed text-gray-900 flex-1 font-medium ${isPublished ? 'line-through opacity-70' : ''}`}>
+                    {post.timeSlot === "Mid-day" ? `“${post.text}”` : post.text}
+                  </p>
+
+                  
+                  <div className="h-20 flex items-center justify-end pr-4 text-gray-700 opacity-80">
+                    <pre className="handwriting text-2xl leading-tight transform -rotate-6">
+                      {styles.doodle}
+                    </pre>
+                  </div>
+
+                  
+                  <div className="flex items-center justify-between mt-4 text-gray-800">
+                    <span className="text-xs font-bold font-sans">
                       {charCount} / 280
                     </span>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => togglePublished(post.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border-b-4 ${
-                          isPublished
-                            ? "bg-slate-800 border-slate-900 text-slate-400"
-                            : "bg-emerald-600 border-emerald-800 text-white hover:bg-emerald-500"
-                        }`}
-                      >
-                        {isPublished ? "Undo" : "Mark Dispatched"}
-                      </button>
+                    <div className="flex items-center gap-4">
+                      
+                      {post.timeSlot === "Late Night" && !isPublished && (
+                        <button 
+                          onClick={() => togglePublished(post.id)}
+                          className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
+                        >
+                          Mark Dispatched
+                        </button>
+                      )}
+                      
+                      {post.timeSlot === "Late Night" && isPublished && (
+                        <button 
+                          onClick={() => togglePublished(post.id)}
+                          className="bg-gray-300 text-gray-600 text-[11px] font-bold px-4 py-1.5 rounded-full transition-colors"
+                        >
+                          Undo
+                        </button>
+                      )}
 
                       <button
                         onClick={() => handleCopy(post.id, post.text)}
-                        disabled={isPublished}
-                        className={`px-4 py-1.5 rounded-xl text-xs font-black border-b-4 transition-all ${
-                          isPublished
-                            ? "bg-slate-800 text-slate-600 border-transparent cursor-not-allowed"
-                            : "bg-indigo-500 border-indigo-700 hover:bg-indigo-400 text-white"
-                        }`}
+                        className="hover:text-black transition-colors"
+                        title="Copy to clipboard"
                       >
-                        {copiedId === post.id ? <Check size={14} className="mx-auto" /> : <Copy size={14} className="mx-auto" />}
+                        {copiedId === post.id ? <Check size="{18}" strokeWidth="{2.5}"/> : <Copy size="{18}" strokeWidth="{2.5}"/>}
+                      </button>
+                      
+                      <button className="hover:text-black transition-colors">
+                        <MoreVertical size="{18}" strokeWidth="{2.5}"/>
                       </button>
                     </div>
                   </div>
@@ -323,8 +374,26 @@ export default function UniHubContentBank() {
               );
             })}
           </div>
-        )}
+
+          
+          <div className="pt-16 pb-10 flex justify-center items-center gap-6 relative">
+             
+             <div className="absolute left-1/4 bottom-16 opacity-70">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                   <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
+                </svg>
+             </div>
+             
+             <p className="handwriting text-4xl text-black relative inline-block">
+               Automate the chaos. Get your life back.
+               <span className="absolute -bottom-2 left-0 w-full h-[2px] bg-yellow-400 rotate-1"></span>
+             </p>
+             
+             <Sparkles size="{24}" className="fill-black text-black rotate-12 mt-4"/>
+          </div>
+
+        </div>
       </div>
-    </div>
+    </>
   );
-    }
+}
