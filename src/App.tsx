@@ -80,10 +80,10 @@ export default function UniHubContentBank() {
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
       
-      // Mobile-friendly safe JSON cleaning without dangerous regex literal blocks
       let cleanJson = rawText.trim();
       if (cleanJson.startsWith("```json")) cleanJson = cleanJson.slice(7);
-      if (cleanJson.startsWith("```")) cleanJson = cleanJson.slice(3);
+      if (cleanJson.startsWith("
+```")) cleanJson = cleanJson.slice(3);
       if (cleanJson.endsWith("```")) cleanJson = cleanJson.slice(0, -3);
       cleanJson = cleanJson.trim();
 
@@ -181,10 +181,8 @@ export default function UniHubContentBank() {
 
   return (
     <div className="min-h-screen bg-[#F5F6F8] text-gray-900 font-sans relative overflow-hidden flex justify-center py-10 px-4 md:px-8 selection:bg-black selection:text-white">
-      {/* Dynamic injection of the font to maintain full self-containment */}
       <link href="[https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap](https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap)" rel="stylesheet" />
       
-      {/* Decorative right-side dot pattern background style */}
       <div 
         className="absolute top-0 right-0 w-32 h-full opacity-50 z-0 pointer-events-none"
         style={{
@@ -195,7 +193,6 @@ export default function UniHubContentBank() {
 
       <div className="max-w-4xl w-full relative z-10 space-y-12">
         
-        {/* Top Navigation Bar */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <span className="text-2xl font-black tracking-tighter">UNiHUB</span>
@@ -213,9 +210,8 @@ export default function UniHubContentBank() {
           </div>
         </header>
 
-        {/* Developer configuration drop down block */}
         {showKeyInput && (
-          <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 transition-all">
+          <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 transition-all animate-in fade-in slide-in-from-top-4">
             <h3 className="font-bold text-sm mb-2">Configuration</h3>
             <input
               type="password"
@@ -228,7 +224,6 @@ export default function UniHubContentBank() {
           </div>
         )}
 
-        {/* Dashboard Greeting Header block */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-medium tracking-tight flex items-baseline gap-3">
@@ -249,7 +244,6 @@ export default function UniHubContentBank() {
           </div>
         </div>
 
-        {/* Matrix primary trigger controls layout section */}
         <div className="flex flex-col md:flex-row gap-6 items-stretch">
           <button
             onClick={generateDailyMatrix}
@@ -275,7 +269,6 @@ export default function UniHubContentBank() {
           </div>
         </div>
 
-        {/* Matrix Card Skeuomorphic Dynamic Container Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 pt-4">
           {posts.length === 0 && !isLoading && (
              <div className="col-span-2 text-center py-20 text-gray-400 text-3xl" style={{ fontFamily: "'Caveat', cursive" }}>
@@ -293,10 +286,8 @@ export default function UniHubContentBank() {
                 key={post.id}
                 className={`relative ${styles.bg} ${styles.rotation} p-8 pb-6 rounded-sm shadow-xl shadow-black/5 flex flex-col min-h-[380px] transition-all hover:scale-[1.02] ${isPublished ? 'opacity-60' : ''}`}
               >
-                {/* Tape accent mimic decoration element */}
                 <div className={`absolute left-1/2 -translate-x-1/2 ${styles.tape} shadow-sm backdrop-blur-sm z-10`}></div>
 
-                {/* Card contextual informational metadata row */}
                 <div className="flex justify-between items-start mb-6 mt-2">
                   <div className="space-y-3">
                     <span className="bg-black text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
@@ -311,19 +302,16 @@ export default function UniHubContentBank() {
                   </span>
                 </div>
 
-                {/* Main Text Content */}
                 <p className={`text-[17px] leading-relaxed text-gray-900 flex-1 font-medium ${isPublished ? 'line-through opacity-70' : ''}`}>
                   {post.timeSlot === "Mid-day" ? `"${post.text}"` : post.text}
                 </p>
 
-                {/* Inline styled hand drawn cursive doodle graphics element */}
                 <div className="h-20 flex items-center justify-end pr-4 text-gray-700 opacity-80">
                   <pre className="text-2xl leading-tight transform -rotate-6" style={{ fontFamily: "'Caveat', cursive" }}>
                     {styles.doodle}
                   </pre>
                 </div>
 
-                {/* Card action controls interaction elements */}
                 <div className="flex items-center justify-between mt-4 text-gray-800">
                   <span className="text-xs font-bold">
                     {charCount} / 280
@@ -357,7 +345,6 @@ export default function UniHubContentBank() {
           })}
         </div>
 
-        {/* Footer Accent Handwriting Slogan Graphic Section */}
         <div className="pt-16 pb-10 flex justify-center items-center gap-6 relative">
            <div className="absolute left-1/4 bottom-16 opacity-70">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -376,5 +363,5 @@ export default function UniHubContentBank() {
       </div>
     </div>
   );
-            }
-      
+  }
+              
