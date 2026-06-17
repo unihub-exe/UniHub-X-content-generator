@@ -57,18 +57,7 @@ export default function UniHubContentBank() {
     setIsLoading(true);
     setError(null);
 
-    const systemPrompt = `
-      You are an expert growth hacker and startup copywriter building in public for "UniHub" (domain: try-unihub.click). 
-      UniHub is a platform for events and communities. It handles everything: RSVP management, ticketing, crowd control, and coordination.
-      
-      Generate exactly 4 funny, punchy, self-aware, highly engaging posts for X (Twitter) tailored to specific daily time slots. 
-      - Must reference 'try-unihub.click' naturally.
-      - Must be under 260 characters.
-      - Avoid generic marketing speak. Use witty, relatable, modern conversational humor (referencing group chat chaos, broken spreadsheets, venue confusion, FOMO).
-      
-      Return ONLY a valid JSON array matching this TypeScript type:
-      Array<{ timeSlot: "Morning" | "Mid-day" | "Evening" | "Late Night", category: string, text: string }>
-    `;
+    const systemPrompt = "You are an expert growth hacker and startup copywriter building in public for 'UniHub' (domain: try-unihub.click). UniHub is a platform for events and communities. It handles everything: RSVP management, ticketing, crowd control, and coordination. Target Audiences: University student organizers, local event promoters, developers setting up hackathons, gaming hosts coordinating D&D/board game nights, communities tracking meetups, and individuals planning weddings or private ticketed parties. Generate exactly 4 funny, punchy, self-aware, highly engaging posts for X (Twitter) tailored to specific daily time slots. Must reference 'try-unihub.click' naturally. Must be under 260 characters. Avoid generic marketing speak. Use witty, relatable, modern conversational humor. Return ONLY a valid JSON array matching this TypeScript type: Array<{ timeSlot: 'Morning' | 'Mid-day' | 'Evening' | 'Late Night', category: string, text: string }>";
 
     try {
       const response = await fetch(
@@ -90,9 +79,15 @@ export default function UniHubContentBank() {
 
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
-      const cleanJson = rawText.replace(/```json|
-```/g, "").trim();
-      const parsed: Array<{ timeSlot: any; category: string; text: string }> = JSON.parse(cleanJson);
+      
+      // Mobile-friendly safe JSON cleaning without dangerous regex literal blocks
+      let cleanJson = rawText.trim();
+      if (cleanJson.startsWith("```json")) cleanJson = cleanJson.slice(7);
+      if (cleanJson.startsWith("```")) cleanJson = cleanJson.slice(3);
+      if (cleanJson.endsWith("```")) cleanJson = cleanJson.slice(0, -3);
+      cleanJson = cleanJson.trim();
+
+      const parsed: Array<{ timeSlot: "Morning" | "Mid-day" | "Evening" | "Late Night"; category: string; text: string }> = JSON.parse(cleanJson);
 
       const formattedPosts: Post[] = parsed.map((item, index) => ({
         id: Date.now() + index,
@@ -150,7 +145,6 @@ export default function UniHubContentBank() {
     }
   };
 
-  // Utility to match the exact aesthetic of each sticky note from the mockup
   const getCardStyles = (timeSlot: string) => {
     switch (timeSlot) {
       case "Morning":
@@ -186,214 +180,200 @@ export default function UniHubContentBank() {
   };
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap');
-        .handwriting { font-family: 'Caveat', cursive; }
-        .dot-pattern {
-          background-image: radial-gradient(#d1d5db 2px, transparent 2px);
-          background-size: 24px 24px;
-        }
-      `}} />
+    <div className="min-h-screen bg-[#F5F6F8] text-gray-900 font-sans relative overflow-hidden flex justify-center py-10 px-4 md:px-8 selection:bg-black selection:text-white">
+      {/* Dynamic injection of the font to maintain full self-containment */}
+      <link href="[https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap](https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap)" rel="stylesheet" />
+      
+      {/* Decorative right-side dot pattern background style */}
+      <div 
+        className="absolute top-0 right-0 w-32 h-full opacity-50 z-0 pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(#d1d5db 2px, transparent 2px)",
+          backgroundSize: "24px 24px"
+        }}
+      ></div>
 
-      <div className="min-h-screen bg-[#F5F6F8] text-gray-900 font-sans relative overflow-hidden flex justify-center py-10 px-4 md:px-8 selection:bg-black selection:text-white">
+      <div className="max-w-4xl w-full relative z-10 space-y-12">
         
-        
-        <div className="absolute top-0 right-0 w-32 h-full dot-pattern opacity-50 z-0 pointer-events-none"></div>
+        {/* Top Navigation Bar */}
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-2xl font-black tracking-tighter">UNiHUB</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="text-gray-600 hover:text-black transition-colors">
+              <Bell size="{22}" strokeWidth="{2.5}"/>
+            </button>
+            <button 
+              onClick={() => setShowKeyInput(!showKeyInput)}
+              className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-md"
+            >
+              <Plus size="{22}" strokeWidth="{3}"/>
+            </button>
+          </div>
+        </header>
 
-        <div className="max-w-4xl w-full relative z-10 space-y-12">
-          
-          
-          <header className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <span className="text-2xl font-black tracking-tighter">UNiHUB</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="text-gray-600 hover:text-black transition-colors">
-                <Bell size="{22}" strokeWidth="{2.5}"/>
-              </button>
-              <button 
-                onClick={() => setShowKeyInput(!showKeyInput)}
-                className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-md"
-              >
-                <Plus size="{22}" strokeWidth="{3}"/>
-              </button>
-            </div>
-          </header>
+        {/* Developer configuration drop down block */}
+        {showKeyInput && (
+          <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 transition-all">
+            <h3 className="font-bold text-sm mb-2">Configuration</h3>
+            <input
+              type="password"
+              placeholder="Paste Gemini API Key here"
+              defaultValue={apiKey}
+              onChange={(e) => saveApiKey(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+            />
+            {error && <p className="text-red-500 text-xs mt-2 font-medium">{error}</p>}
+          </div>
+        )}
 
-          
-          {showKeyInput && (
-            <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 animate-in fade-in slide-in-from-top-4">
-              <h3 className="font-bold text-sm mb-2">Configuration</h3>
-              <input
-                type="password"
-                placeholder="Paste Gemini API Key here"
-                defaultValue={apiKey}
-                onChange={(e) => saveApiKey(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
-              />
-              {error && <p className="text-red-500 text-xs mt-2 font-medium">{error}</p>}
+        {/* Dashboard Greeting Header block */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-medium tracking-tight flex items-baseline gap-3">
+              Good morning, <span className="text-5xl md:text-6xl -mb-2" style={{ fontFamily: "'Caveat', cursive" }}>mimi</span> <span className="text-4xl">👋</span>
+            </h1>
+            <p className="text-gray-500 text-lg mt-3">Your automated social content matrix is ready.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm">
+              <Flame className="text-orange-500 fill-orange-500" size="{18}"/>
+              <span>{streak} DAY STREAK</span>
             </div>
+            <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm text-green-600">
+              <Star className="fill-green-600" size="{18}"/>
+              <span>{totalXp} XP</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Matrix primary trigger controls layout section */}
+        <div className="flex flex-col md:flex-row gap-6 items-stretch">
+          <button
+            onClick={generateDailyMatrix}
+            disabled={isLoading}
+            className="bg-black hover:bg-gray-900 text-white rounded-3xl p-6 flex items-center justify-between w-full md:w-[320px] shadow-xl shadow-black/10 transition-transform active:scale-95 disabled:opacity-80"
+          >
+            <div className="text-left">
+              <span className="block text-lg font-medium leading-tight">Generate Today's<br />Expanded Matrix</span>
+            </div>
+            <Sparkles ""} "animate-spin" : ? className="{isLoading" size="{28}"/>
+          </button>
+
+          <div className="flex-1 bg-white/60 backdrop-blur-md border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col justify-center">
+            <div className="flex justify-between items-center mb-3 text-sm font-medium text-gray-500">
+              <span>Today's Progress</span>
+              <span>{publishedIds.length} / {posts.length || 4}</span>
+            </div>
+            <div className="flex gap-2">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className={`h-1.5 rounded-full flex-1 ${i < publishedIds.length * 2 ? 'bg-black' : 'bg-gray-200'}`}></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Matrix Card Skeuomorphic Dynamic Container Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 pt-4">
+          {posts.length === 0 && !isLoading && (
+             <div className="col-span-2 text-center py-20 text-gray-400 text-3xl" style={{ fontFamily: "'Caveat', cursive" }}>
+               Click the black button to brew some content...
+             </div>
           )}
 
-          
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-medium tracking-tight flex items-baseline gap-3">
-                Good morning, <span className="handwriting text-5xl md:text-6xl -mb-2">mimi</span> <span className="text-4xl">👋</span>
-              </h1>
-              <p className="text-gray-500 text-lg mt-3">Your automated social content matrix is ready.</p>
-            </div>
+          {posts.map((post) => {
+            const styles = getCardStyles(post.timeSlot);
+            const charCount = post.text.length;
+            const isPublished = publishedIds.includes(post.id);
 
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm">
-                <Flame size="{18}" className="text-orange-500 fill-orange-500"/>
-                <span>{streak} DAY STREAK</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm text-green-600">
-                <Star size="{18}" className="fill-green-600"/>
-                <span>{totalXp} XP</span>
-              </div>
-            </div>
-          </div>
+            return (
+              <div
+                key={post.id}
+                className={`relative ${styles.bg} ${styles.rotation} p-8 pb-6 rounded-sm shadow-xl shadow-black/5 flex flex-col min-h-[380px] transition-all hover:scale-[1.02] ${isPublished ? 'opacity-60' : ''}`}
+              >
+                {/* Tape accent mimic decoration element */}
+                <div className={`absolute left-1/2 -translate-x-1/2 ${styles.tape} shadow-sm backdrop-blur-sm z-10`}></div>
 
-          
-          <div className="flex flex-col md:flex-row gap-6 items-stretch">
-            <button
-              onClick={generateDailyMatrix}
-              disabled={isLoading}
-              className="bg-black hover:bg-gray-900 text-white rounded-3xl p-6 flex items-center justify-between w-full md:w-[320px] shadow-xl shadow-black/10 transition-transform active:scale-95 disabled:opacity-80"
-            >
-              <div className="text-left">
-                <span className="block text-lg font-medium leading-tight">Generate Today's<br/>Expanded Matrix</span>
-              </div>
-              <Sparkles size="{28}" className="{isLoading" ? "animate-spin" : ""}/>
-            </button>
-
-            <div className="flex-1 bg-white/60 backdrop-blur-md border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col justify-center">
-              <div className="flex justify-between items-center mb-3 text-sm font-medium text-gray-500">
-                <span>Today's Progress</span>
-                <span>{publishedIds.length} / {posts.length || 4}</span>
-              </div>
-              <div className="flex gap-2">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className={`h-1.5 rounded-full flex-1 ${i < publishedIds.length * 2 ? 'bg-black' : 'bg-gray-200'}`}></div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 pt-4">
-            {posts.length === 0 && !isLoading && (
-               <div className="col-span-2 text-center py-20 text-gray-400 handwriting text-3xl">
-                 Click the black button to brew some content...
-               </div>
-            )}
-
-            {posts.map((post) => {
-              const styles = getCardStyles(post.timeSlot);
-              const charCount = post.text.length;
-              const isPublished = publishedIds.includes(post.id);
-
-              return (
-                <div
-                  key={post.id}
-                  className={`relative ${styles.bg} ${styles.rotation} p-8 pb-6 rounded-sm shadow-xl shadow-black/5 flex flex-col min-h-[380px] transition-all hover:scale-[1.02] ${isPublished ? 'opacity-60' : ''}`}
-                >
-                  
-                  <div className={`absolute left-1/2 -translate-x-1/2 ${styles.tape} shadow-sm backdrop-blur-sm z-10`}></div>
-
-                  
-                  <div className="flex justify-between items-start mb-6 mt-2">
-                    <div className="space-y-3">
-                      <span className="bg-black text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
-                        {post.timeSlot}
-                      </span>
-                      <h3 className="text-[15px] font-medium text-gray-900">
-                        # {post.category}
-                      </h3>
-                    </div>
-                    <span className="bg-green-100/80 text-green-800 text-xs font-bold px-3 py-1 rounded-full border border-green-200/50">
-                      +{post.xpValue} XP
+                {/* Card contextual informational metadata row */}
+                <div className="flex justify-between items-start mb-6 mt-2">
+                  <div className="space-y-3">
+                    <span className="bg-black text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
+                      {post.timeSlot}
                     </span>
+                    <h3 className="text-[15px] font-medium text-gray-900">
+                      # {post.category}
+                    </h3>
                   </div>
+                  <span className="bg-green-100/80 text-green-800 text-xs font-bold px-3 py-1 rounded-full border border-green-200/50">
+                    +{post.xpValue} XP
+                  </span>
+                </div>
 
-                  
-                  <p className={`text-[17px] leading-relaxed text-gray-900 flex-1 font-medium ${isPublished ? 'line-through opacity-70' : ''}`}>
-                    {post.timeSlot === "Mid-day" ? `“${post.text}”` : post.text}
-                  </p>
+                {/* Main Text Content */}
+                <p className={`text-[17px] leading-relaxed text-gray-900 flex-1 font-medium ${isPublished ? 'line-through opacity-70' : ''}`}>
+                  {post.timeSlot === "Mid-day" ? `"${post.text}"` : post.text}
+                </p>
 
-                  
-                  <div className="h-20 flex items-center justify-end pr-4 text-gray-700 opacity-80">
-                    <pre className="handwriting text-2xl leading-tight transform -rotate-6">
-                      {styles.doodle}
-                    </pre>
-                  </div>
+                {/* Inline styled hand drawn cursive doodle graphics element */}
+                <div className="h-20 flex items-center justify-end pr-4 text-gray-700 opacity-80">
+                  <pre className="text-2xl leading-tight transform -rotate-6" style={{ fontFamily: "'Caveat', cursive" }}>
+                    {styles.doodle}
+                  </pre>
+                </div>
 
-                  
-                  <div className="flex items-center justify-between mt-4 text-gray-800">
-                    <span className="text-xs font-bold font-sans">
-                      {charCount} / 280
-                    </span>
+                {/* Card action controls interaction elements */}
+                <div className="flex items-center justify-between mt-4 text-gray-800">
+                  <span className="text-xs font-bold">
+                    {charCount} / 280
+                  </span>
 
-                    <div className="flex items-center gap-4">
-                      
-                      {post.timeSlot === "Late Night" && !isPublished && (
-                        <button 
-                          onClick={() => togglePublished(post.id)}
-                          className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
-                        >
-                          Mark Dispatched
-                        </button>
-                      )}
-                      
-                      {post.timeSlot === "Late Night" && isPublished && (
-                        <button 
-                          onClick={() => togglePublished(post.id)}
-                          className="bg-gray-300 text-gray-600 text-[11px] font-bold px-4 py-1.5 rounded-full transition-colors"
-                        >
-                          Undo
-                        </button>
-                      )}
-
-                      <button
-                        onClick={() => handleCopy(post.id, post.text)}
-                        className="hover:text-black transition-colors"
-                        title="Copy to clipboard"
+                  <div className="flex items-center gap-4">
+                    {post.timeSlot === "Late Night" && (
+                      <button 
+                        onClick={() => togglePublished(post.id)}
+                        className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
                       >
-                        {copiedId === post.id ? <Check size="{18}" strokeWidth="{2.5}"/> : <Copy size="{18}" strokeWidth="{2.5}"/>}
+                        {isPublished ? "Undo" : "Mark Dispatched"}
                       </button>
-                      
-                      <button className="hover:text-black transition-colors">
-                        <MoreVertical size="{18}" strokeWidth="{2.5}"/>
-                      </button>
-                    </div>
+                    )}
+
+                    <button
+                      onClick={() => handleCopy(post.id, post.text)}
+                      className="hover:text-black transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      {copiedId === post.id ? <Check size="{18}" strokeWidth="{2.5}"/> : <Copy size="{18}" strokeWidth="{2.5}"/>}
+                    </button>
+                    
+                    <button className="hover:text-black transition-colors">
+                      <MoreVertical size="{18}" strokeWidth="{2.5}"/>
+                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          
-          <div className="pt-16 pb-10 flex justify-center items-center gap-6 relative">
-             
-             <div className="absolute left-1/4 bottom-16 opacity-70">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                   <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
-                </svg>
-             </div>
-             
-             <p className="handwriting text-4xl text-black relative inline-block">
-               Automate the chaos. Get your life back.
-               <span className="absolute -bottom-2 left-0 w-full h-[2px] bg-yellow-400 rotate-1"></span>
-             </p>
-             
-             <Sparkles size="{24}" className="fill-black text-black rotate-12 mt-4"/>
-          </div>
-
+              </div>
+            );
+          })}
         </div>
+
+        {/* Footer Accent Handwriting Slogan Graphic Section */}
+        <div className="pt-16 pb-10 flex justify-center items-center gap-6 relative">
+           <div className="absolute left-1/4 bottom-16 opacity-70">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                 <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
+              </svg>
+           </div>
+           
+           <p className="text-4xl text-black relative inline-block" style={{ fontFamily: "'Caveat', cursive" }}>
+             Automate the chaos. Get your life back.
+             <span className="absolute -bottom-2 left-0 w-full h-[2px] bg-yellow-400 rotate-1"></span>
+           </p>
+           
+           <Sparkles className="fill-black text-black rotate-12 mt-4" size="{24}"/>
+        </div>
+
       </div>
-    </>
+    </div>
   );
 }
