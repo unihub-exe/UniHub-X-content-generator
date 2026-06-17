@@ -15,14 +15,14 @@ export default function UniHubContentBank() {
   // Key state management
   const [apiKey, setApiKey] = useState<string>("");
   const [showKeyInput, setShowKeyInput] = useState<boolean>(false);
-  
+
   // App states
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [publishedIds, setPublishedIds] = useState<number[]>([]);
-  
+
   // Gamification metrics
   const [streak, setStreak] = useState<number>(0);
   const [totalXp, setTotalXp] = useState<number>(0);
@@ -57,57 +57,67 @@ export default function UniHubContentBank() {
     setIsLoading(true);
     setError(null);
 
-    const systemPrompt = "You are an expert growth hacker and startup copywriter building in public for 'UniHub' (domain: try-unihub.click). UniHub is a platform for events and communities. It handles everything: RSVP management, ticketing, crowd control, and coordination. Generate exactly 4 funny, punchy, self-aware, highly engaging posts for X (Twitter) tailored to specific daily time slots. Must reference 'try-unihub.click' naturally. Must be under 260 characters. Return ONLY a valid JSON array matching this TypeScript type: Array<{ timeSlot: 'Morning' | 'Mid-day' | 'Evening' | 'Late Night', category: string, text: string }>";
+    const systemPrompt =
+      "You are an expert growth hacker and startup copywriter building in public for 'UniHub' (domain: try-unihub.click). UniHub is a platform for events and communities. It handles everything: RSVP management, ticketing, crowd control, and coordination. Generate exactly 4 funny, punchy, self-aware, highly engaging posts for X (Twitter) tailored to specific daily time slots. Must reference 'try-unihub.click' naturally. Must be under 260 characters. Return ONLY a valid JSON array matching this TypeScript type: Array<{ timeSlot: 'Morning' | 'Mid-day' | 'Evening' | 'Late Night', category: string, text: string }>";
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [{ parts: [{ text: systemPrompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
-          })
+            generationConfig: { responseMimeType: "application/json" },
+          }),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Google API Error: ${errorData?.error?.message || response.statusText}`);
+        throw new Error(
+          `Google API Error: ${(errorData as any)?.error?.message || response.statusText}`
+        );
       }
 
       const data = await response.json();
       const rawText = data.candidates[0].content.parts[0].text;
-      
-      let cleanJson = rawText.trim();
-      if (cleanJson.startsWith("```json")) cleanJson = cleanJson.slice(7);
-      if (cleanJson.startsWith("
-```")) cleanJson = cleanJson.slice(3);
-      if (cleanJson.endsWith("```")) cleanJson = cleanJson.slice(0, -3);
+
+      // FIX: properly strip markdown code fences using slice indices, no raw backtick strings
+      let cleanJson: string = rawText.trim();
+      const FENCE_JSON = "```json";
+      const FENCE = "```";
+      if (cleanJson.startsWith(FENCE_JSON)) cleanJson = cleanJson.slice(FENCE_JSON.length);
+      if (cleanJson.startsWith(FENCE)) cleanJson = cleanJson.slice(FENCE.length);
+      if (cleanJson.endsWith(FENCE)) cleanJson = cleanJson.slice(0, -FENCE.length);
       cleanJson = cleanJson.trim();
 
-      const parsed: Array<{ timeSlot: "Morning" | "Mid-day" | "Evening" | "Late Night"; category: string; text: string }> = JSON.parse(cleanJson);
+      const parsed: Array<{
+        timeSlot: "Morning" | "Mid-day" | "Evening" | "Late Night";
+        category: string;
+        text: string;
+      }> = JSON.parse(cleanJson);
 
       const formattedPosts: Post[] = parsed.map((item, index) => ({
         id: Date.now() + index,
         text: item.text,
         timeSlot: item.timeSlot,
         category: item.category,
-        xpValue: 25
+        xpValue: 25,
       }));
 
       setPosts(formattedPosts);
       setPublishedIds([]);
       localStorage.setItem("unihub_cached_posts", JSON.stringify(formattedPosts));
       localStorage.setItem("unihub_published_ids", JSON.stringify([]));
-      
+
       const currentStreak = streak === 0 ? 1 : streak;
       setStreak(currentStreak);
       localStorage.setItem("unihub_streak_count", currentStreak.toString());
-
-    } catch (err: any) {
-      setError(err.message || "An unexpected generation anomaly occurred.");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected generation anomaly occurred."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +130,7 @@ export default function UniHubContentBank() {
   };
 
   const togglePublished = (id: number) => {
-    let updatedPublished: number[] = [];
+    let updatedPublished: number[];
     let xpBonus = 0;
 
     if (publishedIds.includes(id)) {
@@ -133,7 +143,7 @@ export default function UniHubContentBank() {
 
     setPublishedIds(updatedPublished);
     localStorage.setItem("unihub_published_ids", JSON.stringify(updatedPublished));
-    
+
     const nextXp = Math.max(0, totalXp + xpBonus);
     setTotalXp(nextXp);
     localStorage.setItem("unihub_total_xp", nextXp.toString());
@@ -181,39 +191,44 @@ export default function UniHubContentBank() {
 
   return (
     <div className="min-h-screen bg-[#F5F6F8] text-gray-900 font-sans relative overflow-hidden flex justify-center py-10 px-4 md:px-8 selection:bg-black selection:text-white">
-      <link href="[https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap](https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap)" rel="stylesheet" />
-      
-      <div 
+      {/* FIX: plain URL — no markdown link wrapping */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap"
+        rel="stylesheet"
+      />
+
+      <div
         className="absolute top-0 right-0 w-32 h-full opacity-50 z-0 pointer-events-none"
         style={{
           backgroundImage: "radial-gradient(#d1d5db 2px, transparent 2px)",
-          backgroundSize: "24px 24px"
+          backgroundSize: "24px 24px",
         }}
       ></div>
 
       <div className="max-w-4xl w-full relative z-10 space-y-12">
-        
+
         {/* Top Navbar */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <span className="text-2xl font-black tracking-tighter">UNiHUB</span>
           </div>
           <div className="flex items-center gap-4">
+            {/* FIX: size / strokeWidth must be numbers, not strings */}
             <button className="text-gray-600 hover:text-black transition-colors">
-              <Bell size="{22}" strokeWidth="{2.5}"/>
+              <Bell size={22} strokeWidth={2.5} />
             </button>
-            <button 
+            <button
               onClick={() => setShowKeyInput(!showKeyInput)}
               className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-md"
             >
-              <Plus size="{22}" strokeWidth="{3}"/>
+              <Plus size={22} strokeWidth={3} />
             </button>
           </div>
         </header>
 
         {/* Configuration Panel */}
         {showKeyInput && (
-          <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 transition-all animate-in fade-in slide-in-from-top-4">
+          <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 transition-all">
             <h3 className="font-bold text-sm mb-2">Configuration</h3>
             <input
               type="password"
@@ -222,7 +237,9 @@ export default function UniHubContentBank() {
               onChange={(e) => saveApiKey(e.target.value)}
               className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
             />
-            {error && <p className="text-red-500 text-xs mt-2 font-medium">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-xs mt-2 font-medium">{error}</p>
+            )}
           </div>
         )}
 
@@ -230,18 +247,27 @@ export default function UniHubContentBank() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-medium tracking-tight flex items-baseline gap-3">
-              Good morning, <span className="text-5xl md:text-6xl -mb-2" style={{ fontFamily: "'Caveat', cursive" }}>mimi</span> <span className="text-4xl">👋</span>
+              Good morning,{" "}
+              <span
+                className="text-5xl md:text-6xl -mb-2"
+                style={{ fontFamily: "'Caveat', cursive" }}
+              >
+                mimi
+              </span>{" "}
+              <span className="text-4xl">👋</span>
             </h1>
-            <p className="text-gray-500 text-lg mt-3">Your automated social content matrix is ready.</p>
+            <p className="text-gray-500 text-lg mt-3">
+              Your automated social content matrix is ready.
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm">
-              <Flame className="text-orange-500 fill-orange-500" size="{18}"/>
+              <Flame className="text-orange-500 fill-orange-500" size={18} />
               <span>{streak} DAY STREAK</span>
             </div>
             <div className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm font-bold text-sm text-green-600">
-              <Star className="fill-green-600" size="{18}"/>
+              <Star className="fill-green-600" size={18} />
               <span>{totalXp} XP</span>
             </div>
           </div>
@@ -255,30 +281,45 @@ export default function UniHubContentBank() {
             className="bg-black hover:bg-gray-900 text-white rounded-3xl p-6 flex items-center justify-between w-full md:w-[320px] shadow-xl shadow-black/10 transition-transform active:scale-95 disabled:opacity-80"
           >
             <div className="text-left">
-              <span className="block text-lg font-medium leading-tight">Generate Today's<br />Expanded Matrix</span>
+              <span className="block text-lg font-medium leading-tight">
+                Generate Today's
+                <br />
+                Expanded Matrix
+              </span>
             </div>
-            <Sparkles ""} "animate-spin" : ? className="{isLoading" size="{28}"/>
+            {/* FIX: className prop was completely garbled */}
+            <Sparkles className={isLoading ? "animate-spin" : ""} size={28} />
           </button>
 
           <div className="flex-1 bg-white/60 backdrop-blur-md border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col justify-center">
             <div className="flex justify-between items-center mb-3 text-sm font-medium text-gray-500">
               <span>Today's Progress</span>
-              <span>{publishedIds.length} / {posts.length || 4}</span>
+              <span>
+                {publishedIds.length} / {posts.length || 4}
+              </span>
             </div>
             <div className="flex gap-2">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className={`h-1.5 rounded-full flex-1 ${i < publishedIds.length * 2 ? 'bg-black' : 'bg-gray-200'}`}></div>
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full flex-1 ${
+                    i < publishedIds.length * 2 ? "bg-black" : "bg-gray-200"
+                  }`}
+                ></div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Sticky Notes Matrix Container Grid */}
+        {/* Sticky Notes Matrix Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 pt-4">
           {posts.length === 0 && !isLoading && (
-             <div className="col-span-2 text-center py-20 text-gray-400 text-3xl" style={{ fontFamily: "'Caveat', cursive" }}>
-               Click the black button to brew some content...
-             </div>
+            <div
+              className="col-span-2 text-center py-20 text-gray-400 text-3xl"
+              style={{ fontFamily: "'Caveat', cursive" }}
+            >
+              Click the black button to brew some content...
+            </div>
           )}
 
           {posts.map((post) => {
@@ -289,9 +330,13 @@ export default function UniHubContentBank() {
             return (
               <div
                 key={post.id}
-                className={`relative ${styles.bg} ${styles.rotation} p-8 pb-6 rounded-sm shadow-xl shadow-black/5 flex flex-col min-h-[380px] transition-all hover:scale-[1.02] ${isPublished ? 'opacity-60' : ''}`}
+                className={`relative ${styles.bg} ${styles.rotation} p-8 pb-6 rounded-sm shadow-xl shadow-black/5 flex flex-col min-h-[380px] transition-all hover:scale-[1.02] ${
+                  isPublished ? "opacity-60" : ""
+                }`}
               >
-                <div className={`absolute left-1/2 -translate-x-1/2 ${styles.tape} shadow-sm backdrop-blur-sm z-10`}></div>
+                <div
+                  className={`absolute left-1/2 -translate-x-1/2 ${styles.tape} shadow-sm backdrop-blur-sm z-10`}
+                ></div>
 
                 <div className="flex justify-between items-start mb-6 mt-2">
                   <div className="space-y-3">
@@ -307,24 +352,29 @@ export default function UniHubContentBank() {
                   </span>
                 </div>
 
-                <p className={`text-[17px] leading-relaxed text-gray-900 flex-1 font-medium ${isPublished ? 'line-through opacity-70' : ''}`}>
+                <p
+                  className={`text-[17px] leading-relaxed text-gray-900 flex-1 font-medium ${
+                    isPublished ? "line-through opacity-70" : ""
+                  }`}
+                >
                   {post.timeSlot === "Mid-day" ? `"${post.text}"` : post.text}
                 </p>
 
                 <div className="h-20 flex items-center justify-end pr-4 text-gray-700 opacity-80">
-                  <pre className="text-2xl leading-tight transform -rotate-6" style={{ fontFamily: "'Caveat', cursive" }}>
+                  <pre
+                    className="text-2xl leading-tight transform -rotate-6"
+                    style={{ fontFamily: "'Caveat', cursive" }}
+                  >
                     {styles.doodle}
                   </pre>
                 </div>
 
                 <div className="flex items-center justify-between mt-4 text-gray-800">
-                  <span className="text-xs font-bold">
-                    {charCount} / 280
-                  </span>
+                  <span className="text-xs font-bold">{charCount} / 280</span>
 
                   <div className="flex items-center gap-4">
                     {post.timeSlot === "Late Night" && (
-                      <button 
+                      <button
                         onClick={() => togglePublished(post.id)}
                         className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
                       >
@@ -337,11 +387,15 @@ export default function UniHubContentBank() {
                       className="hover:text-black transition-colors"
                       title="Copy to clipboard"
                     >
-                      {copiedId === post.id ? <Check size="{18}" strokeWidth="{2.5}"/> : <Copy size="{18}" strokeWidth="{2.5}"/>}
+                      {copiedId === post.id ? (
+                        <Check size={18} strokeWidth={2.5} />
+                      ) : (
+                        <Copy size={18} strokeWidth={2.5} />
+                      )}
                     </button>
-                    
+
                     <button className="hover:text-black transition-colors">
-                      <MoreVertical size="{18}" strokeWidth="{2.5}"/>
+                      <MoreVertical size={18} strokeWidth={2.5} />
                     </button>
                   </div>
                 </div>
@@ -352,22 +406,31 @@ export default function UniHubContentBank() {
 
         {/* Footer Slogan Section */}
         <div className="pt-16 pb-10 flex justify-center items-center gap-6 relative">
-           <div className="absolute left-1/4 bottom-16 opacity-70">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                 <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
-              </svg>
-           </div>
-           
-           <p className="text-4xl text-black relative inline-block" style={{ fontFamily: "'Caveat', cursive" }}>
-             Automate the chaos. Get your life back.
-             <span className="absolute -bottom-2 left-0 w-full h-[2px] bg-yellow-400 rotate-1"></span>
-           </p>
-           
-           <Sparkles className="fill-black text-black rotate-12 mt-4" size="{24}"/>
-        </div>
+          <div className="absolute left-1/4 bottom-16 opacity-70">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M12 3v18M3 12h18M6.5 6.5l11 11M6.5 17.5l11-11" />
+            </svg>
+          </div>
 
+          <p
+            className="text-4xl text-black relative inline-block"
+            style={{ fontFamily: "'Caveat', cursive" }}
+          >
+            Automate the chaos. Get your life back.
+            <span className="absolute -bottom-2 left-0 w-full h-[2px] bg-yellow-400 rotate-1"></span>
+          </p>
+
+          <Sparkles className="fill-black text-black rotate-12 mt-4" size={24} />
+        </div>
       </div>
     </div>
   );
-              }
-        
+                         }
+                                                                            
