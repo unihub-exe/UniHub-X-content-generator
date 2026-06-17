@@ -57,7 +57,7 @@ export default function UniHubContentBank() {
     setIsLoading(true);
     setError(null);
 
-    const systemPrompt = "You are an expert growth hacker and startup copywriter building in public for 'UniHub' (domain: try-unihub.click). UniHub is a platform for events and communities. It handles everything: RSVP management, ticketing, crowd control, and coordination. Target Audiences: University student organizers, local event promoters, developers setting up hackathons, gaming hosts coordinating D&D/board game nights, communities tracking meetups, and individuals planning weddings or private ticketed parties. Generate exactly 4 funny, punchy, self-aware, highly engaging posts for X (Twitter) tailored to specific daily time slots. Must reference 'try-unihub.click' naturally. Must be under 260 characters. Avoid generic marketing speak. Use witty, relatable, modern conversational humor. Return ONLY a valid JSON array matching this TypeScript type: Array<{ timeSlot: 'Morning' | 'Mid-day' | 'Evening' | 'Late Night', category: string, text: string }>";
+    const systemPrompt = "You are an expert growth hacker and startup copywriter building in public for 'UniHub' (domain: try-unihub.click). UniHub is a platform for events and communities. It handles everything: RSVP management, ticketing, crowd control, and coordination. Generate exactly 4 funny, punchy, self-aware, highly engaging posts for X (Twitter) tailored to specific daily time slots. Must reference 'try-unihub.click' naturally. Must be under 260 characters. Return ONLY a valid JSON array matching this TypeScript type: Array<{ timeSlot: 'Morning' | 'Mid-day' | 'Evening' | 'Late Night', category: string, text: string }>";
 
     try {
       const response = await fetch(
@@ -193,6 +193,7 @@ export default function UniHubContentBank() {
 
       <div className="max-w-4xl w-full relative z-10 space-y-12">
         
+        {/* Top Navbar */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <span className="text-2xl font-black tracking-tighter">UNiHUB</span>
@@ -210,6 +211,7 @@ export default function UniHubContentBank() {
           </div>
         </header>
 
+        {/* Configuration Panel */}
         {showKeyInput && (
           <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 transition-all animate-in fade-in slide-in-from-top-4">
             <h3 className="font-bold text-sm mb-2">Configuration</h3>
@@ -224,6 +226,7 @@ export default function UniHubContentBank() {
           </div>
         )}
 
+        {/* Greeting Banner */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-medium tracking-tight flex items-baseline gap-3">
@@ -244,6 +247,7 @@ export default function UniHubContentBank() {
           </div>
         </div>
 
+        {/* Action Row */}
         <div className="flex flex-col md:flex-row gap-6 items-stretch">
           <button
             onClick={generateDailyMatrix}
@@ -269,6 +273,7 @@ export default function UniHubContentBank() {
           </div>
         </div>
 
+        {/* Sticky Notes Matrix Container Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 pt-4">
           {posts.length === 0 && !isLoading && (
              <div className="col-span-2 text-center py-20 text-gray-400 text-3xl" style={{ fontFamily: "'Caveat', cursive" }}>
@@ -345,6 +350,7 @@ export default function UniHubContentBank() {
           })}
         </div>
 
+        {/* Footer Slogan Section */}
         <div className="pt-16 pb-10 flex justify-center items-center gap-6 relative">
            <div className="absolute left-1/4 bottom-16 opacity-70">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -363,5 +369,5 @@ export default function UniHubContentBank() {
       </div>
     </div>
   );
-  }
-              
+              }
+        
