@@ -11,6 +11,14 @@ type Post = {
   xpValue: number;
 };
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Good morning,";
+  if (hour >= 12 && hour < 17) return "Good afternoon,";
+  if (hour >= 17 && hour < 21) return "Good evening,";
+  return "Good night,";
+}
+
 export default function UniHubContentBank() {
   // Key state management
   const [apiKey, setApiKey] = useState<string>("");
@@ -247,7 +255,7 @@ export default function UniHubContentBank() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-medium tracking-tight flex items-baseline gap-3">
-              Good morning,{" "}
+              {getGreeting()}{" "}
               <span
                 className="text-5xl md:text-6xl -mb-2"
                 style={{ fontFamily: "'Caveat', cursive" }}
@@ -432,5 +440,5 @@ export default function UniHubContentBank() {
       </div>
     </div>
   );
-                         }
-                                                                            
+          }
+        
