@@ -76,7 +76,7 @@ export default function UniHubContentBank() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [{ parts: [{ text: systemPrompt }] }],
-            generationConfig: { responseMimeType: "application/json" },
+            generationConfig: { response_mime_type: "application/json" },
           }),
         }
       );
@@ -440,5 +440,5 @@ export default function UniHubContentBank() {
       </div>
     </div>
   );
-                   }
-    
+        }
+          
