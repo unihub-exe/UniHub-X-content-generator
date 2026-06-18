@@ -381,14 +381,12 @@ export default function UniHubContentBank() {
                   <span className="text-xs font-bold">{charCount} / 280</span>
 
                   <div className="flex items-center gap-4">
-                    {post.timeSlot === "Late Night" && (
-                      <button
-                        onClick={() => togglePublished(post.id)}
-                        className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
-                      >
-                        {isPublished ? "Undo" : "Mark Dispatched"}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => togglePublished(post.id)}
+                      className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
+                    >
+                      {isPublished ? "Undo" : "Mark Dispatched"}
+                    </button>
 
                     <button
                       onClick={() => handleCopy(post.id, post.text)}
@@ -440,5 +438,5 @@ export default function UniHubContentBank() {
       </div>
     </div>
   );
-  }
-                
+        }
+          
