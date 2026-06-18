@@ -74,10 +74,12 @@ export default function UniHubContentBank() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemPrompt }] }],
-            generationConfig: { responseMimeType: "application/json" },
-          }),
+          //  NEW (Using snake_case for the raw REST API)
+body: JSON.stringify({
+  contents: [{ parts: [{ text: systemPrompt }] }],
+  generationConfig: { response_mime_type: "application/json" },
+}),
+
         }
       );
 
