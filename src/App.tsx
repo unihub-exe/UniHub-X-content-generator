@@ -74,12 +74,11 @@ export default function UniHubContentBank() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          //  NEW (Using snake_case for the raw REST API)
-body: JSON.stringify({
-  contents: [{ parts: [{ text: systemPrompt }] }],
-  generationConfig: { response_mime_type: "application/json" },
-}),
-
+          // FIXED: Changed response_mime_type to camelCase responseMimeType
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt }] }],
+            generationConfig: { responseMimeType: "application/json" },
+          }),
         }
       );
 
@@ -393,6 +392,7 @@ body: JSON.stringify({
                     )}
 
                     <button
+                      onClick={export async function handleCopy(id, text) { ... }} // references top level layout handleCopy execution
                       onClick={() => handleCopy(post.id, post.text)}
                       className="hover:text-black transition-colors"
                       title="Copy to clipboard"
@@ -442,5 +442,5 @@ body: JSON.stringify({
       </div>
     </div>
   );
-          }
+        }
         
